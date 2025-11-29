@@ -21,3 +21,4 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_set_base_tickets  22    // step 01
+#define SYS_update_ticket_status  23 //step 04

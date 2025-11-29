@@ -1,3 +1,10 @@
+struct ticketinfo {
+    int base_tickets;
+    int accumulated_tickets;
+    int exchanged_tickets;
+    int ticks;
+};
+
 struct stat;
 struct rtcdate;
 
@@ -24,6 +31,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int set_base_tickets(int);          //rafat
+int update_ticket_status(int pid, struct ticketinfo *info); //step04
 
 // ulib.c
 int stat(const char*, struct stat*);

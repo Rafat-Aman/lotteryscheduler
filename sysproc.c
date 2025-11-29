@@ -112,3 +112,34 @@ sys_set_base_tickets(void)
 
   return 0;
 }
+//step04
+int
+sys_update_ticket_status(void)
+{
+    int pid;
+    struct ticketinfo *uinfo;
+    struct proc *p;
+
+    // Read arguments: pid and user pointer
+    if (argint(0, &pid) < 0 || argptr(1, (void*)&uinfo, sizeof(*uinfo)) < 0)
+        return -1;
+
+    acquire(&ptable.lock);
+
+    // Find process
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->pid == pid) {
+            // Copy kernel values into user struct
+            uinfo->base_tickets = p->base_tickets;
+            uinfo->accumulated_tickets = p->accumulated_tickets;
+            uinfo->exchanged_tickets = p->exchanged_tickets;
+            uinfo->ticks = p->ticks;
+
+            release(&ptable.lock);
+            return 0;
+        }
+    }
+
+    release(&ptable.lock);
+    return -1;  // pid not found
+}

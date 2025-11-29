@@ -1,3 +1,9 @@
+// proc.h requires basic types and descriptor definitions.
+#include "param.h"
+#include "mmu.h"
+#include "x86.h"
+#include "spinlock.h"
+
 // Per-CPU state
 struct cpu {
   uchar apicid;                // Local APIC ID
@@ -57,6 +63,19 @@ struct proc {
   int ticks;                 // CPU tick counter (for fairness analysis)
 
 };
+//step04
+struct ticketinfo {
+    int base_tickets;
+    int accumulated_tickets;
+    int exchanged_tickets;
+    int ticks;
+};
+struct ptable {
+  struct spinlock lock;
+  struct proc proc[NPROC];
+};
+extern struct ptable ptable;
+
 
 // Process memory is laid out contiguously, low addresses first:
 //   text
