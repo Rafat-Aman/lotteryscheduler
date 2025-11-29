@@ -143,3 +143,56 @@ sys_update_ticket_status(void)
     release(&ptable.lock);
     return -1;  // pid not found
 }
+
+int
+sys_transfer_tickets(void)
+{
+  int to_pid, n;
+  if(argint(0, &to_pid) < 0) return -1;
+  if(argint(1, &n) < 0) return -1;
+  if(n <= 0) return -1;
+
+  struct proc *cur = myproc();
+  if(cur == 0) return -1;
+
+  acquire(&ptable.lock);
+
+  // find target process
+  struct proc *p;
+  struct proc *target = 0;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == to_pid){
+      target = p;
+      break;
+    }
+  }
+  if(!target){
+    release(&ptable.lock);
+    return -1;
+  }
+
+  // compute available tickets for donor
+  int avail = cur->base_tickets + cur->accumulated_tickets - cur->exchanged_tickets;
+  if(avail < 1) avail = 1;
+
+  if(n > avail) n = avail; // donate up to avail
+
+  // deduct from accumulated_tickets first
+  if(cur->accumulated_tickets >= n){
+    cur->accumulated_tickets -= n;
+  } else {
+    int rem = n - cur->accumulated_tickets;
+    cur->accumulated_tickets = 0;
+    cur->base_tickets -= rem;
+    if(cur->base_tickets < 1) cur->base_tickets = 1;
+  }
+
+  // give to target as accumulated_tickets (so it merges later)
+  target->accumulated_tickets += n;
+
+  // bookkeeping: donor exchanged more tickets
+  cur->exchanged_tickets += n;
+
+  release(&ptable.lock);
+  return n;
+}

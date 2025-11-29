@@ -185,6 +185,7 @@ UPROGS=\
 	_tickettest\
 	_lotterytest \
 	_ticketstat \
+	_transfer_test\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
