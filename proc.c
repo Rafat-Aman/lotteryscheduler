@@ -342,17 +342,30 @@ scheduler(void)
   struct proc *chosen;
   struct cpu *c = mycpu();
   c->proc = 0;
+  static int normalize_counter = 0;
 
   for(;;){
     sti();
     acquire(&ptable.lock);
+
+    normalize_counter++;
+    if(normalize_counter >= 5000){
+      struct proc *q;
+      for(q = ptable.proc; q < &ptable.proc[NPROC]; q++){
+        if(q->state != UNUSED){
+          q->accumulated_tickets /= 2;   // decay accumulated
+          q->exchanged_tickets = 0;      // reset donation accounting
+        }
+      }
+      normalize_counter = 0;
+    }
 
     int total_tickets = 0;
 
     // Sum effective tickets
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state == RUNNABLE){
-        int eff = p->base_tickets + p->accumulated_tickets;
+        int eff = p->base_tickets + p->accumulated_tickets + p->exchanged_tickets;
         if(eff < 1) eff = 1;
         total_tickets += eff;
       }
@@ -369,16 +382,18 @@ scheduler(void)
     chosen = 0;
 
     // Select by walking ticket intervals
+    int chosen_effective = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
 
-      int eff = p->base_tickets + p->accumulated_tickets;
+      int eff = p->base_tickets + p->accumulated_tickets + p->exchanged_tickets;
       if(eff < 1) eff = 1;
 
       sum += eff;
       if(sum > r){
         chosen = p;
+        chosen_effective = eff;
         break;
       }
     }
@@ -389,6 +404,14 @@ scheduler(void)
         if(p->state == RUNNABLE && p != chosen){
           p->accumulated_tickets += p->base_tickets;
         }
+      }
+
+      static int sched_dbg = 0;
+      if(++sched_dbg % 100 == 0){
+        cprintf("SCHED: pid=%d eff=%d base=%d acc=%d exch=%d ticks=%d\n",
+                chosen->pid, chosen_effective, chosen->base_tickets,
+                chosen->accumulated_tickets, chosen->exchanged_tickets,
+                chosen->ticks);
       }
 
       chosen->accumulated_tickets = 0;
