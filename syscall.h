@@ -23,3 +23,4 @@
 #define SYS_set_base_tickets  22    // step 01
 #define SYS_update_ticket_status  23 //step 04
 #define SYS_transfer_tickets 24
+#define SYS_testlock 25

@@ -196,3 +196,16 @@ sys_transfer_tickets(void)
   release(&ptable.lock);
   return n;
 }
+
+struct ticketlock testlock;
+
+int
+sys_testlock(void)
+{
+  acquireticket(&testlock);
+  cprintf("PID %d entered (now_serving=%d)\n",
+          myproc()->pid,
+          testlock.now_serving);
+  releaseticket(&testlock);
+  return 0;
+}

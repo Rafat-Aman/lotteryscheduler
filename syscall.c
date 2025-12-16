@@ -106,6 +106,7 @@ extern int sys_uptime(void);
 extern int sys_set_base_tickets(void); //step2
 extern int sys_update_ticket_status(void); //step 4
 extern int sys_transfer_tickets(void);
+extern int sys_testlock(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -132,6 +133,7 @@ static int (*syscalls[])(void) = {
 [SYS_set_base_tickets]  sys_set_base_tickets,
 [SYS_update_ticket_status] sys_update_ticket_status, //step 04
 [SYS_transfer_tickets] sys_transfer_tickets,
+[SYS_testlock] sys_testlock,
 };
 
 void

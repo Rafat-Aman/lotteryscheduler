@@ -33,6 +33,7 @@ int uptime(void);
 int set_base_tickets(int);          //rafat
 int update_ticket_status(int pid, struct ticketinfo *info); //step04
 int transfer_tickets(int pid, int n);
+int testlock(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

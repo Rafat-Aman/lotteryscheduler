@@ -97,6 +97,37 @@ holding(struct spinlock *lock)
 }
 
 
+// Ticket lock implementation
+
+static inline uint
+fetch_and_add(uint *addr, uint val)
+{
+  return __sync_fetch_and_add(addr, val);
+}
+
+void
+initticketlock(struct ticketlock *lk, char *name)
+{
+  lk->next_ticket = 0;
+  lk->now_serving = 0;
+  lk->name = name;
+}
+
+void
+acquireticket(struct ticketlock *lk)
+{
+  uint myticket = fetch_and_add(&lk->next_ticket, 1);
+  while(lk->now_serving != myticket)
+    ;
+  __sync_synchronize();
+}
+
+void
+releaseticket(struct ticketlock *lk)
+{
+  __sync_synchronize();
+  lk->now_serving++;
+}
 // Pushcli/popcli are like cli/sti except that they are matched:
 // it takes two popcli to undo two pushcli.  Also, if interrupts
 // are off, then pushcli, popcli leaves them off.
